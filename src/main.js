@@ -9,6 +9,6 @@ Vue.config.productionTip = false
 // fastclick.attach(document.body);
 new Vue({
   el: '#app',
-  router,
+  router, // 注入路由
   render: h => h(App)
 })

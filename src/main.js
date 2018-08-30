@@ -2,11 +2,11 @@ import 'babel-polyfill' // 使用polyfill，需要在程序入口的顶部引入
 import Vue from 'vue' // 从node_module查找
 import App from './App'
 import router from './router'
-import 'common/stylus/index.styl' // 引入index.styl进来作为全局使用
-Vue.config.productionTip = false
+import 'common/stylus/index.styl'
 /* eslint-disable no-new */
-// import 'fastclick' from "fastclick";
-// fastclick.attach(document.body);
+import fastclick from 'fastclick' // 引入index.styl进来作为全局使用
+Vue.config.productionTip = false
+fastclick.attach(document.body)
 new Vue({
   el: '#app',
   router, // 注入路由

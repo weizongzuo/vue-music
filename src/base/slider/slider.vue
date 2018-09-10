@@ -4,15 +4,24 @@
             <slot></slot>
         </div>
         <div class="dots">
+            <span class="dot" v-for="(item,index) in dots" :key="item" :class="{active:currentPageIndex===index}">
+            </span>
         </div>
     </div>
 </template>
 <script>
 // https://ustbhuangyi.github.io/better-scroll
-import BScroll from 'better-scroll'
 import { addClass } from 'common/js/dom'
+import BScroll from 'better-scroll'
 export default {
-  prop: {
+  data() {
+    return {
+      dots: [],
+      currentPageIndex: 0
+    }
+  },
+  //   name: 'slider',
+  props: {
     //   循环
     loop: {
       type: Boolean,
@@ -26,18 +35,47 @@ export default {
     // 时间间隔
     interval: {
       type: Number,
-      default: 4000
+      default: 2000
     }
   },
   mounted() {
     //   浏览器刷新通常是17ms之后
     setTimeout(() => {
       this._setSliderWidth()
+      this._initDots()
       this._initSlider()
+      if (this.autoPlay) {
+        this._play()
+      }
     }, 20)
+    // 文档视图调整大小时会触发 resize 事件
+    window.addEventListener('resize', () => {
+      // slider尚未初始化时
+      if (!this.slider) {
+        return
+      }
+      // 重新计算宽度
+      this._setSliderWidth(true)
+      // 重新计算 better-scroll，当 DOM 结构发生变化的时候务必要调用确保滚动的效果正常
+      this.slider.refresh()
+    })
+  },
+  activated() {
+    if (this.autoPlay) {
+      this._play()
+    }
+  },
+  deactivated() {
+    clearTimeout(this.timer)
+  },
+  beforeDestroy() {
+    clearTimeout(this.timer)
+  },
+  destroyed() {
+    clearTimeout(this.timerss)
   },
   methods: {
-    _setSliderWidth() {
+    _setSliderWidth(isResize) {
       // 获取sliderGroup所在dom元素的children
       this.children = this.$refs.sliderGroup.children
       let width = 0
@@ -50,11 +88,15 @@ export default {
         child.style.width = sliderWidth + 'px'
         width += sliderWidth // 所有子元素总宽
       }
-      if (this.loop) {
+      // !isResize为限制在视窗改变时不加宽度
+      if (this.loop && !isResize) {
         // 无缝轮播加需两个child宽度
         width += 2 * sliderWidth
       }
       this.$refs.sliderGroup.style.width = width + 'px'
+    },
+    _initDots() {
+      this.dots = new Array(this.children.length)
     },
     _initSlider() {
       this.slider = new BScroll(this.$refs.slider, {
@@ -64,9 +106,35 @@ export default {
         snap: true,
         snapLoop: this.loop,
         snapThreshold: 0.3,
-        snapSpeed: 400,
-        click: true
+        snapSpeed: 400
       })
+      this.slider.on('scrollEnd', () => {
+        let pageIndex = this.slider.getCurrentPage().pageX
+        // 在循环的时候默认在第一个元素添加了copy元素，所以需要减去
+        if (this.loop) {
+          pageIndex -= 1
+        }
+        this.currentPageIndex = pageIndex
+        if (this.autoPlay) {
+          clearTimeout(this.timer)
+          this._play()
+        }
+      })
+      this.slider.on('beforeScrollStart', () => {
+        if (this.autoPlay) {
+          clearTimeout(this.timer)
+        }
+      })
+    },
+    _play() {
+      // 第N个元素
+      let pageIndex = this.currentPageIndex + 1
+      if (this.loop) {
+        pageIndex += 1
+      }
+      this.timer = setTimeout(() => {
+        this.slider.goToPage(pageIndex, 0, 400)
+      }, this.interval)
     }
   }
 }

@@ -20,7 +20,7 @@
 </template>
 <script>
 import Slider from 'base/slider/slider'
-import { getRecomend } from 'api/recommend'
+import { getRecomend, getDiscList } from 'api/recommend'
 import { ERR_OK } from 'api/config'
 export default {
   data() {
@@ -30,18 +30,29 @@ export default {
   },
   created() {
     this._getRecommend()
+    this._getDiscList()
   },
   methods: {
     _getRecommend() {
       // 这里是封装的promise
-      getRecomend().then(res => {
-        if (res.code === ERR_OK) {
-          console.log(res.data.slider)
-          this.recommends = res.data.slider
-        } else {
-          // console.log(res)
-        }
-      })
+      getRecomend()
+        .then(res => {
+          if (res.code === ERR_OK) {
+            this.recommends = res.data.slider
+          } else {
+            // console.log(res)
+          }
+        })
+    },
+    _getDiscList() {
+      getDiscList()
+        .then(res => {
+          if (res.code === ERR_OK) {
+            console.log(res.data.list, 'res')
+          } else {
+            // 报错
+          }
+        })
     }
   },
   components: {

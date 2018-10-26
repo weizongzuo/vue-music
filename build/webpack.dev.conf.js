@@ -16,6 +16,25 @@ const axios = require('axios')
 let app = express()
 let apiRoutes = express.Router()
 
+apiRoutes.get('/getDiscList', function (req, res) {
+  const url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+  axios.get(url, {
+      headers: {
+        referer: 'https://c.y.qq.com/',
+        host: 'c.y.qq.com'
+      },
+      params: req.query
+    })
+    .then(function (response) {
+      res.json(response.data)
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+})
+
+app.use('/api', apiRoutes)
+
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 

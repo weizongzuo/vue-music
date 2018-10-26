@@ -72,7 +72,7 @@ export default {
     clearTimeout(this.timer)
   },
   destroyed() {
-    clearTimeout(this.timerss)
+    clearTimeout(this.timer)
   },
   methods: {
     _setSliderWidth(isResize) {

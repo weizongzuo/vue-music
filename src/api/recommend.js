@@ -20,7 +20,7 @@ export function getRecomend() {
 }
 // PC端歌单数据 https://y.qq.com/portal/playlist.html
 export function getDiscList() {
-  const url = '/api/getDiscList'
+  const url = '/api/getDiscList' // 地址来源于app.use('/api', apiRoutes)与apiRoutes.get('/getDiscList', function (req, res) {})
 
   const data = Object.assign({}, commonParams, {
     platform: 'yqq', // 平台

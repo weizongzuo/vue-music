@@ -33,6 +33,7 @@ export function getDiscList() {
     rnd: Math.random(),
     format: 'json'
   })
+  // 这里为XMLHttpRequests，调用webpack.dev.conf.js中后端接口代理请求
   return axios.get(url, {
     params: data
   }).then((res) => {

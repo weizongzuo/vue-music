@@ -30,6 +30,7 @@ export default {
   },
   created() {
     this._getRecommend()
+     // 执行该方法让获取后端接口代理得到的数据
     this._getDiscList()
   },
   methods: {
@@ -44,9 +45,11 @@ export default {
       })
     },
     _getDiscList() {
+      // 这里是封装的promise
       getDiscList().then(res => {
         if (res.code === ERR_OK) {
-          console.log(res.data.list, 'res')
+            //拿到后端接口代理请求的数据
+          console.log(res.data.list)
         } else {
           // 报错
         }

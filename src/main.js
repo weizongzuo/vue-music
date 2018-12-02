@@ -3,10 +3,15 @@ import Vue from 'vue' // 从node_module查找
 import App from './App'
 import router from './router'
 import 'common/stylus/index.styl'
+import VueLazyload from 'vue-lazyload'
 /* eslint-disable no-new */
 import fastclick from 'fastclick' // 引入index.styl进来作为全局使用
 Vue.config.productionTip = false
 fastclick.attach(document.body)
+
+Vue.use(VueLazyload, {
+  loading: require('./common/image/default.png')
+})
 new Vue({
   el: '#app',
   router, // 注入路由

@@ -1,13 +1,13 @@
 <template>
   <div class="recommend">
-    <scroll class="recommend-content" :data='discList'>
+    <scroll ref="scroll" class="recommend-content" :data="discList">
       <!-- 轮播图  v-if="recommends.length"确保已经拿到数据再渲染slider组件 -->
       <div>
         <div v-if="recommends.length" class="slider-wrapper">
           <slider>
             <div v-for="item in recommends" :key="item.id">
               <a :href="item.linkUrl">
-                <img :src="item.picUrl" alt>
+                <img :src="item.picUrl" alt @load="loadImage">
               </a>
             </div>
           </slider>
@@ -17,7 +17,7 @@
           <ul>
             <li v-for="item in discList" class="item" :key="item.imgurl">
               <div class="icon">
-                <img width="60" height="60" :src="item.imgurl" alt>
+                <img width="60" height="60" v-lazy="item.imgurl" alt>
               </div>
               <div class="text">
                 <h2 class="name" v-html="item.creator.name"></h2>
@@ -44,16 +44,16 @@
       };
     },
     created() {
-      this._getRecommend()
+      this._getRecommend();
       // 执行该方法让获取后端接口代理得到的数据
-      this._getDiscList()
+      this._getDiscList();
     },
     methods: {
       _getRecommend() {
         // 这里是封装的promise
         getRecomend().then(res => {
           if (res.code === ERR_OK) {
-            this.recommends = res.data.slider
+            this.recommends = res.data.slider;
           } else {
             // console.log(res)
           }
@@ -64,11 +64,18 @@
         getDiscList().then(res => {
           if (res.code === ERR_OK) {
             // 拿到后端接口代理请求的数据
-            this.discList = res.data.list
+            this.discList = res.data.list;
           } else {
             // 报错
           }
         });
+      },
+      loadImage() {
+          if(!this.checkLoaded){
+              // 重新计算 better-scroll，当 DOM 结构发生变化的时候务必要调用确保滚动的效果正常
+              this.$refs.scroll.refresh();
+              this.checkLoaded = true;
+          }
       }
     },
     components: {

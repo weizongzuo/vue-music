@@ -3,7 +3,7 @@
     <scroll ref="scroll" class="recommend-content" :data="discList">
       <!-- 轮播图  v-if="recommends.length"确保已经拿到数据再渲染slider组件 -->
       <div>
-        <div v-if="recommends.length" class="slider-wrapper">
+        <div v-if="recommends.length" class="slider-wrapper" ref="sliderWrapper">
           <slider>
             <div v-for="item in recommends" :key="item.id">
               <a :href="item.linkUrl">

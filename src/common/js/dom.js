@@ -13,3 +13,13 @@ export function hasClass(el, classPropertyName) {
   // el.className返回元素的class属性值
   return reg.test(el.className)
 }
+
+export function getData(el, name, val) {
+  const prefix = 'data-'
+  name = prefix + name
+  if (val) {
+    return el.setAttribute(name, val)
+  } else {
+    return el.getAttribute(name)
+  }
+}

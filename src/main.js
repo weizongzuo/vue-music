@@ -2,6 +2,7 @@ import 'babel-polyfill' // 使用polyfill，需要在程序入口的顶部引入
 import Vue from 'vue' // 从node_module查找
 import App from './App'
 import router from './router'
+import store from './store'
 import 'common/stylus/index.styl'
 import VueLazyload from 'vue-lazyload'
 /* eslint-disable no-new */
@@ -15,5 +16,6 @@ Vue.use(VueLazyload, {
 new Vue({
   el: '#app',
   router, // 注入路由
+  store, // 注入store
   render: h => h(App)
 })

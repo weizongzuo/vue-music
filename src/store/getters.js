@@ -1,0 +1,1 @@
+export const singer = state => state.singer // 获取state.js中的是singer

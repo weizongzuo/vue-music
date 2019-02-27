@@ -30,6 +30,7 @@
           this.$router.push("/singer");
           return;
         }
+        // 拿到vuex传递过来的singer的id
         getSingerDetail(this.singer.id).then(res => {
           if (res.code === ERR_OK) {
             this.songs = this._normalizeSongs(res.data.list);

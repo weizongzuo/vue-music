@@ -8,7 +8,7 @@ import createLogger from 'vuex/dist/logger' // 控制台记录状态修改
 
 Vue.use(Vuex)
 
-const debug = process.env.NODE_ENV !== 'production'
+const debug = process.env.NODE_ENV !== 'production' // 开发模式中使用
 
 export default new Vuex.Store({
   actions,
@@ -16,5 +16,5 @@ export default new Vuex.Store({
   state,
   mutations,
   strict: debug, // 开启严格模式 如果修改state不规范，则会警告
-  plugins: debug ? [createLogger()] : []
+  plugins: debug ? [createLogger()] : [] // state日志
 })

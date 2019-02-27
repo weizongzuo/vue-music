@@ -33,7 +33,7 @@
        this.$router.push({
           path: `/singer/${singer.id}`
         })
-        this.setSinger(singer)  // this.setSinger()映射为this.$store.commit('SET_SINGER')
+        this.setSinger(singer)  // this.setSinger(singer)映射为this.$store.commit('SET_SINGER',singer)
       },
       // 数据
       _getSingerList() {

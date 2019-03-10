@@ -90,8 +90,9 @@
         this.$router.back()
       },
       selectItem(item, index) {
+        //调用selectPlay分发action 把payload传递过去
         this.selectPlay({
-          list: this.songs,
+          list: this.songs, //歌曲列表
           index
         })
       },

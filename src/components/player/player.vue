@@ -122,7 +122,16 @@ import { prefixStyle } from "common/js/dom";
 const transform = prefixStyle("transform");
 export default {
   computed: {
-    ...mapGetters(["fullScreen", "playlist", "currentSong"])
+    ...mapGetters(["fullScreen", "playlist", "currentSong", "playing"]),
+    playIcon() {
+      return this.playing ? "icon-pause" : "icon-play";
+    },
+    miniIcon() {
+      return this.playing ? "icon-pause-mini" : "icon-play-mini";
+    },
+    cdCls() {
+      return this.playing ? "play" : "play pause";
+    }
   },
   methods: {
     back() {
@@ -171,6 +180,9 @@ export default {
       this.$refs.cdWrapper.style.transition = "";
       this.$refs.cdWrapper.style[transform] = "";
     },
+    togglePlaying() {
+      this.setPlayingState(!this.playing);
+    },
     _getPosAndScale() {
       const targetWidth = 40; // 小圆圈图片宽度
       const paddingLeft = 40; // 小圆圈图片圆心到左边的距离
@@ -187,8 +199,23 @@ export default {
       };
     },
     ...mapMutations({
-      setFullScreen: "SET_FULL_SCREEN"
+      setFullScreen: "SET_FULL_SCREEN",
+      setPlayingState: "SET_PLAYING_STATE"
     })
+  },
+  watch: {
+    currentSong() {
+      // 发生变化时播放
+      this.$nextTick(() => {
+        this.$refs.audio.play();
+      });
+    },
+    playing(newPlaying) {
+      const audio = this.$refs.audio;
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause();
+      });
+    }
   }
 };
 </script>

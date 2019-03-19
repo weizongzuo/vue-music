@@ -112,6 +112,8 @@
       @timeupdate="updateTime"
       @ended="end"
     ></audio>
+    <!-- @canplay="ready" -->
+    <!-- @error="error" -->
   </div>
 </template>
 <script>
@@ -121,8 +123,20 @@ import { prefixStyle } from "common/js/dom";
 
 const transform = prefixStyle("transform");
 export default {
+  data() {
+    return {
+      songReady: false,
+      currentTime: 0
+    };
+  },
   computed: {
-    ...mapGetters(["fullScreen", "playlist", "currentSong", "playing"]),
+    ...mapGetters([
+      "fullScreen",
+      "playlist",
+      "currentSong",
+      "playing",
+      "currentIndex"
+    ]),
     playIcon() {
       return this.playing ? "icon-pause" : "icon-play";
     },
@@ -131,6 +145,9 @@ export default {
     },
     cdCls() {
       return this.playing ? "play" : "play pause";
+    },
+    disableCls() {
+      return this.songReady ? "" : "disable";
     }
   },
   methods: {
@@ -183,6 +200,58 @@ export default {
     togglePlaying() {
       this.setPlayingState(!this.playing);
     },
+    next() {
+      if (!this.songReady) {
+        return;
+      }
+      let index = this.currentIndex + 1;
+      if (index === this.playlist.length) {
+        index = 0; // 回到第一首
+      }
+      this.setCurrentIndex(index);
+      if (!this.playing) {
+        this.togglePlaying();
+      }
+      this.songReady = false;
+    },
+    prev() {
+      if (!this.songReady) {
+        return;
+      }
+      let index = this.currentIndex - 1;
+      if (index === -1) {
+        index = this.playlist.length - 1; // 回到最后一首歌
+      }
+      this.setCurrentIndex(index);
+      if (!this.playing) {
+        this.togglePlaying();
+      }
+      this.songReady = false;
+    },
+    ready() {
+      this.songReady = true;
+    },
+    error() {
+      this.songReady = true;
+    },
+    updateTime(e) {
+      this.currentTime = e.target.currentTime; // audio当前播放的时间戳
+    },
+    format(interval) {
+      interval = interval | 0; //位运算符取整运算，这里向下取整
+      const minute = interval/60 | 0 //分
+      const second = this._pad(interval % 60)   //秒
+      return `${minute}:${second}`
+    },
+    // 补0
+    _pad(num, n=2){
+      let len = num.toString().length;// 获取长度
+      while(len<2){
+        num = '0' + num;
+        len++;
+      }
+      return num;
+    },
     _getPosAndScale() {
       const targetWidth = 40; // 小圆圈图片宽度
       const paddingLeft = 40; // 小圆圈图片圆心到左边的距离
@@ -200,7 +269,8 @@ export default {
     },
     ...mapMutations({
       setFullScreen: "SET_FULL_SCREEN",
-      setPlayingState: "SET_PLAYING_STATE"
+      setPlayingState: "SET_PLAYING_STATE",
+      setCurrentIndex: "SET_CURRENT_INDEX"
     })
   },
   watch: {

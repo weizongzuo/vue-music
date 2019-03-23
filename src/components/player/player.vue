@@ -120,18 +120,22 @@
 import { mapGetters, mapMutations } from "vuex";
 import animations from "create-keyframe-animation";
 import { prefixStyle } from "common/js/dom";
-import ProgressBar from 'base/progress-bar/progress-bar'
+import ProgressBar from "base/progress-bar/progress-bar";
+import ProgressCircle from "base/progress-circle/progress-circle";
+import { playMode } from "common/js/config";
 
 const transform = prefixStyle("transform");
 export default {
   data() {
     return {
       songReady: false,
-      currentTime: 0
+      currentTime: 0,
+      radius: 32
     };
   },
-  components:{
-    ProgressBar
+  components: {
+    ProgressBar,
+    ProgressCircle
   },
   computed: {
     ...mapGetters([
@@ -139,7 +143,8 @@ export default {
       "playlist",
       "currentSong",
       "playing",
-      "currentIndex"
+      "currentIndex",
+      "mode"
     ]),
     playIcon() {
       return this.playing ? "icon-pause" : "icon-play";
@@ -153,8 +158,15 @@ export default {
     disableCls() {
       return this.songReady ? "" : "disable";
     },
-    percent(){
-      return this.currentTime/this.currentSong.duration
+    percent() {
+      return this.currentTime / this.currentSong.duration;
+    },
+    iconMode() {
+      return this.mode === playMode.sequence
+        ? "icon-sequence"
+        : this.mode === playMode.loop
+        ? "icon-loop"
+        : "icon-random";
     }
   },
   methods: {
@@ -246,15 +258,15 @@ export default {
     },
     format(interval) {
       interval = interval | 0; //位运算符取整运算，这里向下取整
-      const minute = interval/60 | 0 //分
-      const second = this._pad(interval % 60)   //秒
-      return `${minute}:${second}`
+      const minute = (interval / 60) | 0; //分
+      const second = this._pad(interval % 60); //秒
+      return `${minute}:${second}`;
     },
     // 补0
-    _pad(num, n=2){
-      let len = num.toString().length;// 获取长度
-      while(len<2){
-        num = '0' + num;
+    _pad(num, n = 2) {
+      let len = num.toString().length; // 获取长度
+      while (len < 2) {
+        num = "0" + num;
         len++;
       }
       return num;
@@ -274,10 +286,24 @@ export default {
         scale
       };
     },
+    onProgressBarChange(percent) {
+      this.$refs.audio.currentTime = this.currentSong.duration * percent;
+      if (!this.playing) {
+        this.togglePlaying();
+      }
+    },
+    changeMode() {
+      const mode = (this.mode + 1) % 3;
+      this.setPlayMode(mode);
+    },
+    middleTouchStart() {},
+    middleTouchMove() {},
+    middleTouchEnd() {},
     ...mapMutations({
       setFullScreen: "SET_FULL_SCREEN",
       setPlayingState: "SET_PLAYING_STATE",
-      setCurrentIndex: "SET_CURRENT_INDEX"
+      setCurrentIndex: "SET_CURRENT_INDEX",
+      setPlayMode: "SET_PLAY_MODE"
     })
   },
   watch: {

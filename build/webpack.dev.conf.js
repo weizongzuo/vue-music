@@ -1,24 +1,24 @@
-'use strict';
-const utils = require('./utils');
-const webpack = require('webpack');
-const config = require('../config');
-const merge = require('webpack-merge');
-const path = require('path');
-const baseWebpackConfig = require('./webpack.base.conf');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
-const portfinder = require('portfinder');
+'use strict'
+const utils = require('./utils')
+const webpack = require('webpack')
+const config = require('../config')
+const merge = require('webpack-merge')
+const path = require('path')
+const baseWebpackConfig = require('./webpack.base.conf')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
+const portfinder = require('portfinder')
 // 引入
-const express = require('express');
-const axios = require('axios');
+const express = require('express')
+const axios = require('axios')
 
 // 后台数据模拟
-let app = express();
-let apiRoutes = express.Router();
+let app = express()
+let apiRoutes = express.Router()
 
-const HOST = process.env.HOST;
-const PORT = process.env.PORT && Number(process.env.PORT);
+const HOST = process.env.HOST
+const PORT = process.env.PORT && Number(process.env.PORT)
 
 const devWebpackConfig = merge(baseWebpackConfig, {
 	module: {
@@ -62,7 +62,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 		// 后端接口代理
 		before(app) {
 			apiRoutes.get('/getDiscList', function(req, res) {
-				var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg';
+				var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
 				// http请求
 				axios
 					.get(url, {
@@ -76,13 +76,42 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 					.then((response) => {
 						// res为‘/getDiscList’的响应，response为QQ音乐‘https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg’的响应
 						// 输入给浏览器端
-						res.json(response.data);
+						res.json(response.data)
 					})
 					.catch((e) => {
-						console.log(e);
-					});
-			});
-			app.use('/api', apiRoutes);
+						console.log(e)
+					})
+			})
+
+			apiRoutes.get('/lyric', function(req, res) {
+				var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
+				// http请求
+				axios
+					.get(url, {
+						// 修改headers
+						headers: {
+							referer: 'https://c.y.qq.com/',
+							host: 'c.y.qq.com'
+						},
+						params: req.query
+					})
+					.then((response) => {
+						var ret = response.data
+						if (typeof ret === 'string') {
+							var reg = /^\w+\(({[^()]+})\)$/
+							var matches = ret.match(reg)
+							if (matches) {
+								ret = JSON.parse(matches[1])
+							}
+						}
+						res.json(ret)
+					})
+					.catch((e) => {
+						console.log(e)
+					})
+			})
+
+			app.use('/api', apiRoutes)
 		}
 	},
 	plugins: [
@@ -107,18 +136,18 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 			}
 		])
 	]
-});
+})
 
 module.exports = new Promise((resolve, reject) => {
-	portfinder.basePort = process.env.PORT || config.dev.port;
+	portfinder.basePort = process.env.PORT || config.dev.port
 	portfinder.getPort((err, port) => {
 		if (err) {
-			reject(err);
+			reject(err)
 		} else {
 			// publish the new Port, necessary for e2e tests
-			process.env.PORT = port;
+			process.env.PORT = port
 			// add port to devServer config
-			devWebpackConfig.devServer.port = port;
+			devWebpackConfig.devServer.port = port
 
 			// Add FriendlyErrorsPlugin
 			devWebpackConfig.plugins.push(
@@ -130,9 +159,9 @@ module.exports = new Promise((resolve, reject) => {
 					},
 					onErrors: config.dev.notifyOnErrors ? utils.createNotifierCallback() : undefined
 				})
-			);
+			)
 
-			resolve(devWebpackConfig);
+			resolve(devWebpackConfig)
 		}
-	});
-});
+	})
+})

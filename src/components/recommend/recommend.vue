@@ -1,5 +1,5 @@
 <template>
-  <div class="recommend">
+  <div class="recommend" ref="recommend">
     <scroll ref="scroll" class="recommend-content" :data="discList">
       <!-- 轮播图  v-if="recommends.length"确保已经拿到数据再渲染slider组件 -->
       <div>
@@ -40,7 +40,9 @@
   import { ERR_OK } from "api/config";
   import Scroll from "base/scroll/scroll";
   import Loading from 'base/loading/loading'
+  import {playlistMixin} from 'common/js/mixin'
   export default {
+    mixins: [playlistMixin],
     data() {
       return {
         recommends: [],
@@ -53,6 +55,12 @@
       this._getDiscList();
     },
     methods: {
+       // 这里组件的handlePlaylist()会覆盖mixin里的handlePlaylist()
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+        this.$refs.recommend.style.bottom = bottom
+        this.$refs.scroll.refresh()
+      },
       _getRecommend() {
         // 这里是封装的promise
         getRecomend().then(res => {

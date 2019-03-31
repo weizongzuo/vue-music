@@ -124,21 +124,27 @@ import ProgressBar from "base/progress-bar/progress-bar";
 import ProgressCircle from "base/progress-circle/progress-circle";
 import { playMode } from "common/js/config";
 import { shuffle } from "common/js/util";
-import Lyric from 'lyric-parser'
+import Lyric from "lyric-parser";
+import Scroll from "base/scroll/scroll";
 
 const transform = prefixStyle("transform");
+const transitionDuration = prefixStyle("transitionDuration");
 export default {
   data() {
     return {
       songReady: false,
       currentTime: 0,
       radius: 32,
-      currentLyric: null
+      currentLyric: null,
+      currentLineNum: 0,
+      currentShow: "cd",
+      playingLyric: ""
     };
   },
   components: {
     ProgressBar,
-    ProgressCircle
+    ProgressCircle,
+    Scroll
   },
   computed: {
     ...mapGetters([
@@ -172,6 +178,9 @@ export default {
         ? "icon-loop"
         : "icon-random";
     }
+  },
+  created() {
+    this.touch = {};
   },
   methods: {
     back() {
@@ -221,31 +230,46 @@ export default {
       this.$refs.cdWrapper.style[transform] = "";
     },
     togglePlaying() {
+      if (!this.songReady) {
+        return;
+      }
       this.setPlayingState(!this.playing);
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay();
+      }
     },
     // 歌曲播放完毕触发
-    end(){
-      if(this.mode === playMode.loop){
+    end() {
+      if (this.mode === playMode.loop) {
         this.loop();
-      }else{
+      } else {
         this.next();
       }
     },
-    loop(){
+    loop() {
       this.$refs.audio.currentTime = 0;
       this.$refs.audio.play();
+      this.setPlayingState(true);
+      if (this.currentLyric) {
+        this.currentLyric.seek(0);
+      }
     },
     next() {
       if (!this.songReady) {
         return;
       }
-      let index = this.currentIndex + 1;
-      if (index === this.playlist.length) {
-        index = 0; // 回到第一首
-      }
-      this.setCurrentIndex(index);
-      if (!this.playing) {
-        this.togglePlaying();
+      if (this.playlist.length === 1) {
+        this.loop();
+        return;
+      } else {
+        let index = this.currentIndex + 1;
+        if (index === this.playlist.length) {
+          index = 0; // 回到第一首
+        }
+        this.setCurrentIndex(index);
+        if (!this.playing) {
+          this.togglePlaying();
+        }
       }
       this.songReady = false;
     },
@@ -253,13 +277,18 @@ export default {
       if (!this.songReady) {
         return;
       }
-      let index = this.currentIndex - 1;
-      if (index === -1) {
-        index = this.playlist.length - 1; // 回到最后一首歌
-      }
-      this.setCurrentIndex(index);
-      if (!this.playing) {
-        this.togglePlaying();
+      if (this.playlist.length === 1) {
+        this.loop();
+        return;
+      } else {
+        let index = this.currentIndex - 1;
+        if (index === -1) {
+          index = this.playlist.length - 1; // 回到最后一首歌
+        }
+        this.setCurrentIndex(index);
+        if (!this.playing) {
+          this.togglePlaying();
+        }
       }
       this.songReady = false;
     },
@@ -303,9 +332,13 @@ export default {
       };
     },
     onProgressBarChange(percent) {
-      this.$refs.audio.currentTime = this.currentSong.duration * percent;
+      const currentTime = this.currentSong.duration * percent;
+      this.$refs.audio.currentTime = currentTime;
       if (!this.playing) {
         this.togglePlaying();
+      }
+      if (this.currentLyric) {
+        this.currentLyric.seek(currentTime * 1000);
       }
     },
     changeMode() {
@@ -329,24 +362,102 @@ export default {
       });
       this.setCurrentIndex(index);
     },
-    getLyric(){
-     this.currentSong.getLyric().then((lyric) => {
+    getLyric() {
+      this.currentSong
+        .getLyric()
+        .then(lyric => {
           if (this.currentSong.lyric !== lyric) {
-            return
+            return;
           }
-          this.currentLyric = new Lyric(lyric, this.handleLyric)
+          this.currentLyric = new Lyric(lyric, this.handleLyric);
           if (this.playing) {
-            this.currentLyric.play()
+            this.currentLyric.play();
           }
-        }).catch(() => {
-          this.currentLyric = null
-          this.playingLyric = ''
-          this.currentLineNum = 0
         })
+        .catch(() => {
+          this.currentLyric = null;
+          this.playingLyric = "";
+          this.currentLineNum = 0;
+        });
     },
-    middleTouchStart() {},
-    middleTouchMove() {},
-    middleTouchEnd() {},
+    handleLyric({ lineNum, txt }) {
+      this.currentLineNum = lineNum;
+      if (lineNum > 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 5];
+        this.$refs.lyricList.scrollToElement(lineEl, 1000);
+      } else {
+        this.$refs.lyricList.scrollTo(0, 0, 1000);
+      }
+      this.playingLyric = txt;
+    },
+    middleTouchStart() {
+      this.touch.initiated = true;
+      // 用来判断是否是一次移动
+      this.touch.moved = false;
+      const touch = e.touches[0];
+      this.touch.startX = touch.pageX;
+      this.touch.startY = touch.pageY;
+    },
+    middleTouchMove() {
+      if (!this.touch.initiated) {
+        return;
+      }
+      const touch = e.touches[0];
+      const deltaX = touch.pageX - this.touch.startX;
+      const deltaY = touch.pageY - this.touch.startY;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        return;
+      }
+      if (!this.touch.moved) {
+        this.touch.moved = true;
+      }
+      const left = this.currentShow === "cd" ? 0 : -window.innerWidth;
+      const offsetWidth = Math.min(
+        0,
+        Math.max(-window.innerWidth, left + deltaX)
+      );
+      this.touch.percent = Math.abs(offsetWidth / window.innerWidth);
+      this.$refs.lyricList.$el.style[
+        transform
+      ] = `translate3d(${offsetWidth}px,0,0)`;
+      this.$refs.lyricList.$el.style[transitionDuration] = 0;
+      this.$refs.middleL.style.opacity = 1 - this.touch.percent;
+      this.$refs.middleL.style[transitionDuration] = 0;
+    },
+    middleTouchEnd() {
+      if (!this.touch.moved) {
+        return;
+      }
+      let offsetWidth;
+      let opacity;
+      if (this.currentShow === "cd") {
+        if (this.touch.percent > 0.1) {
+          offsetWidth = -window.innerWidth;
+          opacity = 0;
+          this.currentShow = "lyric";
+        } else {
+          offsetWidth = 0;
+          opacity = 1;
+        }
+      } else {
+        if (this.touch.percent < 0.9) {
+          offsetWidth = 0;
+          this.currentShow = "cd";
+          opacity = 1;
+        } else {
+          offsetWidth = -window.innerWidth;
+          opacity = 0;
+        }
+      }
+      const time = 300;
+      this.$refs.lyricList.$el.style[
+        transform
+      ] = `translate3d(${offsetWidth}px,0,0)`;
+      this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`;
+      this.$refs.middleL.style.opacity = opacity;
+      this.$refs.middleL.style[transitionDuration] = `${time}ms`;
+      this.touch.initiated = false;
+    },
     ...mapMutations({
       setFullScreen: "SET_FULL_SCREEN",
       setPlayingState: "SET_PLAYING_STATE",
@@ -357,14 +468,20 @@ export default {
   },
   watch: {
     currentSong(newSong, oldSong) {
-      if(newSong.id === oldSong.id){
+      if (newSong.id === oldSong.id) {
         return;
       }
+      if (this.currentLyric) {
+        this.currentLyric.stop();
+        this.currentTime = 0;
+        this.playingLyric = "";
+        this.currentLineNum = 0;
+      }
       // 发生变化时播放
-      this.$nextTick(() => {
+      setTimeout(() => {
         this.$refs.audio.play();
-        this.getLyric()
-      });
+        this.getLyric();
+      }, 1000);
     },
     playing(newPlaying) {
       const audio = this.$refs.audio;

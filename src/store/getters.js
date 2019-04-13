@@ -17,3 +17,5 @@ export const currentSong = (state) => { // 通过playlist播放列表以及curre
 }
 
 export const disc = state => state.disc
+
+export const topList = state => state.topList

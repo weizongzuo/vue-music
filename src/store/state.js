@@ -7,6 +7,7 @@ const state = {
   sequenceList: [], // 顺序列表
   mode: playMode.sequence,
   currentIndex: -1, // 当前播放的索引
-  disc: {}
+  disc: {},
+  topList: {}
 }
 export default state

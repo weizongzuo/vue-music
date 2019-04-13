@@ -405,6 +405,7 @@ export default {
       const touch = e.touches[0];
       const deltaX = touch.pageX - this.touch.startX;
       const deltaY = touch.pageY - this.touch.startY;
+       // 如果纵轴移动距离大于横轴移动距离不左右移动
       if (Math.abs(deltaY) > Math.abs(deltaX)) {
         return;
       }
@@ -478,7 +479,7 @@ export default {
         this.currentLineNum = 0;
       }
       // 发生变化时播放
-      setTimeout(() => {
+      this.timer = setTimeout(() => {
         this.$refs.audio.play();
         this.getLyric();
       }, 1000);

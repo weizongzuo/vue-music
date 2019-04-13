@@ -15,7 +15,7 @@
         <div class="recommend-list">
           <h1 class="list-title">热门歌单推荐</h1>
           <ul>
-            <li v-for="item in discList" class="item" :key="item.imgurl">
+            <li @click="selectItem(item)" v-for="item in discList" class="item" :key="item.imgurl">
               <div class="icon">
                 <img width="60" height="60" v-lazy="item.imgurl" alt>
               </div>
@@ -28,143 +28,154 @@
         </div>
       </div>
       <div class="loading-container" v-show="!discList.length">
-          <loading></loading>
+        <loading></loading>
       </div>
     </scroll>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-  import Slider from "base/slider/slider";
-  import { getRecomend, getDiscList } from "api/recommend";
-  import { ERR_OK } from "api/config";
-  import Scroll from "base/scroll/scroll";
-  import Loading from 'base/loading/loading'
-  import {playlistMixin} from 'common/js/mixin'
-  export default {
-    mixins: [playlistMixin],
-    data() {
-      return {
-        recommends: [],
-        discList: []
-      };
+import Slider from "base/slider/slider";
+import { getRecomend, getDiscList } from "api/recommend";
+import { ERR_OK } from "api/config";
+import Scroll from "base/scroll/scroll";
+import Loading from "base/loading/loading";
+import { playlistMixin } from "common/js/mixin";
+import {mapMutations} from 'vuex'
+export default {
+  mixins: [playlistMixin],
+  data() {
+    return {
+      recommends: [],
+      discList: []
+    };
+  },
+  created() {
+    this._getRecommend();
+    // 执行该方法让获取后端接口代理得到的数据
+    this._getDiscList();
+  },
+  methods: {
+    // 这里组件的handlePlaylist()会覆盖mixin里的handlePlaylist()
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? "60px" : "";
+      this.$refs.recommend.style.bottom = bottom;
+      this.$refs.scroll.refresh();
     },
-    created() {
-      this._getRecommend();
-      // 执行该方法让获取后端接口代理得到的数据
-      this._getDiscList();
+    selectItem(item){
+      this.$router.push({
+        path: `/recommend/${item.dissid}`
+      })
+      this.setDisc(item);
     },
-    methods: {
-       // 这里组件的handlePlaylist()会覆盖mixin里的handlePlaylist()
-      handlePlaylist(playlist) {
-        const bottom = playlist.length > 0 ? '60px' : ''
-        this.$refs.recommend.style.bottom = bottom
-        this.$refs.scroll.refresh()
-      },
-      _getRecommend() {
-        // 这里是封装的promise
-        getRecomend().then(res => {
-          if (res.code === ERR_OK) {
-            this.recommends = res.data.slider;
-          } else {
-            // console.log(res)
-          }
-        });
-      },
-      _getDiscList() {
-        // 这里是封装的promise
-        getDiscList().then(res => {
-          if (res.code === ERR_OK) {
-            // 拿到后端接口代理请求的数据
-            this.discList = res.data.list;
-          } else {
-            // 报错
-          }
-        });
-      },
-      loadImage() {
-          if(!this.checkLoaded){
-              // 重新计算 better-scroll，当 DOM 结构发生变化的时候务必要调用确保滚动的效果正常
-              this.$refs.scroll.refresh();
-              this.checkLoaded = true;
-          }
+    _getRecommend() {
+      // 这里是封装的promise
+      getRecomend().then(res => {
+        if (res.code === ERR_OK) {
+          this.recommends = res.data.slider;
+        } else {
+          // console.log(res)
+        }
+      });
+    },
+    _getDiscList() {
+      // 这里是封装的promise
+      getDiscList().then(res => {
+        if (res.code === ERR_OK) {
+          // 拿到后端接口代理请求的数据
+          this.discList = res.data.list;
+        } else {
+          // 报错
+        }
+      });
+    },
+    loadImage() {
+      if (!this.checkLoaded) {
+        // 重新计算 better-scroll，当 DOM 结构发生变化的时候务必要调用确保滚动的效果正常
+        this.$refs.scroll.refresh();
+        this.checkLoaded = true;
       }
     },
-    components: {
-      Slider,
-      Scroll,
-      Loading
-    }
-  };
+    ...mapMutations({
+      setDisc: 'SET_DISC'
+    })
+  },
+  components: {
+    Slider,
+    Scroll,
+    Loading
+  }
+};
 </script>
 
 <style lang="stylus" scoped>
-  @import '~common/stylus/variable';
+@import '~common/stylus/variable';
 
-  .recommend {
-    position: fixed;
-    width: 100%;
-    top: 88px;
-    bottom: 0;
+.recommend {
+  position: fixed;
+  width: 100%;
+  top: 88px;
+  bottom: 0;
 
-    .recommend-content {
-      height: 100%;
+  .recommend-content {
+    height: 100%;
+    overflow: hidden;
+
+    .slider-wrapper {
+      position: relative;
+      width: 100%;
       overflow: hidden;
+    }
 
-      .slider-wrapper {
-        position: relative;
-        width: 100%;
-        overflow: hidden;
+    .recommend-list {
+      .list-title {
+        height: 65px;
+        line-height: 65px;
+        text-align: center;
+        font-size: $font-size-medium;
+        color: $color-theme;
       }
 
-      .recommend-list {
-        .list-title {
-          height: 65px;
-          line-height: 65px;
-          text-align: center;
-          font-size: $font-size-medium;
-          color: $color-theme;
+      .item {
+        display: flex;
+        box-sizing: border-box;
+        align-items: center;
+        padding: 0 20px 20px 20px;
+
+        .icon {
+          flex: 0 0 60px;
+          width: 60px;
+          padding-right: 20px;
         }
 
-        .item {
+        .text {
           display: flex;
-          box-sizing: border-box;
-          align-items: center;
-          padding: 0 20px 20px 20px;
+          flex-direction: column;
+          justify-content: center;
+          flex: 1;
+          line-height: 20px;
+          overflow: hidden;
+          font-size: $font-size-medium;
 
-          .icon {
-            flex: 0 0 60px;
-            width: 60px;
-            padding-right: 20px;
+          .name {
+            margin-bottom: 10px;
+            color: $color-text;
           }
 
-          .text {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            flex: 1;
-            line-height: 20px;
-            overflow: hidden;
-            font-size: $font-size-medium;
-
-            .name {
-              margin-bottom: 10px;
-              color: $color-text;
-            }
-
-            .desc {
-              color: $color-text-d;
-            }
+          .desc {
+            color: $color-text-d;
           }
         }
-      }
-
-      .loading-container {
-        position: absolute;
-        width: 100%;
-        top: 50%;
-        transform: translateY(-50%);
       }
     }
+
+    .loading-container {
+      position: absolute;
+      width: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
   }
+}
 </style>

@@ -11,43 +11,50 @@ import TopList from 'components/top-list/top-list'
 Vue.use(Router) // 注册路由
 
 export default new Router({
-  routes: [{
-    path: '/', // 根路径-默认跳到recommend路径
-    redirect: '/recommend'
-  },
-  {
-    path: '/recommend',
-    component: Recommend,
-    children: [
-      {
-        path: ':id',
-        component: Disc
-      }
-    ]
-  },
-  {
-    path: '/singer',
-    component: Singer,
-    children: [
-      {
-        path: ':id',
-        component: SingerDetail
-      }
-    ]
-  },
-  {
-    path: '/rank',
-    component: Rank,
-    children: [
-      {
-        path: ':id',
-        component: TopList
-      }
-    ]
-  },
-  {
-    path: '/search',
-    component: Search
-  }
+  routes: [
+    {
+      path: '/', // 根路径-默认跳到recommend路径
+      redirect: '/recommend'
+    },
+    {
+      path: '/recommend',
+      component: Recommend,
+      children: [
+        {
+          path: ':id',
+          component: Disc
+        }
+      ]
+    },
+    {
+      path: '/singer',
+      component: Singer,
+      children: [
+        {
+          path: ':id',
+          component: SingerDetail
+        }
+      ]
+    },
+    {
+      path: '/rank',
+      component: Rank,
+      children: [
+        {
+          path: ':id',
+          component: TopList
+        }
+      ]
+    },
+    {
+      path: '/search',
+      component: Search,
+      children: [
+        {
+          path: ':id',
+          component: SingerDetail
+        }
+      ]
+    }
   ]
 })

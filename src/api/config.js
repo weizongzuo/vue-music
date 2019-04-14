@@ -15,7 +15,7 @@
 // format: jsonp
 // jsonpCallback: jsonp1
 export const commonParams = {
-  g_tk: 67232076,
+  g_tk: 1928093487,
   inCharset: 'utf-8',
   outCharset: 'utf-8',
   notice: 0,

@@ -86,7 +86,7 @@ export default {
       });
     },
     listScroll() {
-      this.$emit("listScroll");
+      this.$emit("blurInput");
     },
     selectItem(item) {
       if (item.type === TYPE_SINGER) {

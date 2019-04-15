@@ -122,14 +122,16 @@ import animations from "create-keyframe-animation";
 import { prefixStyle } from "common/js/dom";
 import ProgressBar from "base/progress-bar/progress-bar";
 import ProgressCircle from "base/progress-circle/progress-circle";
-import { playMode } from "common/js/config";
-import { shuffle } from "common/js/util";
+import {playMode} from 'common/js/config'
 import Lyric from "lyric-parser";
 import Scroll from "base/scroll/scroll";
+import Playlist from "components/playlist/playlist";
+import {playerMixin} from 'common/js/mixin'
 
 const transform = prefixStyle("transform");
 const transitionDuration = prefixStyle("transitionDuration");
 export default {
+  mixins:[playerMixin],
   data() {
     return {
       songReady: false,
@@ -144,17 +146,14 @@ export default {
   components: {
     ProgressBar,
     ProgressCircle,
-    Scroll
+    Scroll,
+    Playlist
   },
   computed: {
     ...mapGetters([
       "fullScreen",
-      "playlist",
-      "currentSong",
       "playing",
-      "currentIndex",
-      "mode",
-      "sequenceList"
+      "currentIndex"
     ]),
     playIcon() {
       return this.playing ? "icon-pause" : "icon-play";
@@ -170,13 +169,6 @@ export default {
     },
     percent() {
       return this.currentTime / this.currentSong.duration;
-    },
-    iconMode() {
-      return this.mode === playMode.sequence
-        ? "icon-sequence"
-        : this.mode === playMode.loop
-        ? "icon-loop"
-        : "icon-random";
     }
   },
   created() {
@@ -188,6 +180,9 @@ export default {
     },
     open() {
       this.setFullScreen(true);
+    },
+    showPlaylist() {
+      this.$refs.playlist.show();
     },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale();
@@ -341,20 +336,6 @@ export default {
         this.currentLyric.seek(currentTime * 1000);
       }
     },
-    changeMode() {
-      const mode = (this.mode + 1) % 3;
-      this.setPlayMode(mode);
-      let list = null;
-      if (mode === playMode.random) {
-        // 随机
-        list = shuffle(this.sequenceList);
-      } else {
-        // 循环
-        list = this.sequenceList;
-      }
-      this.resetCurrentIndex(list);
-      this.setPlaylist(list);
-    },
     // 切换播放模式时不切换歌曲
     resetCurrentIndex(list) {
       let index = list.findIndex(item => {
@@ -405,7 +386,7 @@ export default {
       const touch = e.touches[0];
       const deltaX = touch.pageX - this.touch.startX;
       const deltaY = touch.pageY - this.touch.startY;
-       // 如果纵轴移动距离大于横轴移动距离不左右移动
+      // 如果纵轴移动距离大于横轴移动距离不左右移动
       if (Math.abs(deltaY) > Math.abs(deltaX)) {
         return;
       }
@@ -460,15 +441,14 @@ export default {
       this.touch.initiated = false;
     },
     ...mapMutations({
-      setFullScreen: "SET_FULL_SCREEN",
-      setPlayingState: "SET_PLAYING_STATE",
-      setCurrentIndex: "SET_CURRENT_INDEX",
-      setPlayMode: "SET_PLAY_MODE",
-      setPlaylist: "SET_PLAYLIST"
+      setFullScreen: "SET_FULL_SCREEN"
     })
   },
   watch: {
     currentSong(newSong, oldSong) {
+      if(!newSong.id){
+        return;
+      }
       if (newSong.id === oldSong.id) {
         return;
       }

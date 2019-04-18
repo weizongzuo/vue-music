@@ -15,12 +15,12 @@ function insertArray(arr, val, compare, maxLen) {
     return
   }
   if (index > 0) {
-    // 插入到第一位
     arr.splice(index, 1)
   }
+  // 插入到第一位
   arr.unshift(val)
   if (maxLen && arr.length > maxLen) {
-    // 删除最后一个元素
+    // 删除最后一个元素,维持一定数量
     arr.pop()
   }
 }

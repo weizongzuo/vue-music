@@ -10,6 +10,8 @@ const state = {
   currentIndex: -1, // 当前播放的索引
   disc: {},
   topList: {},
-  searchHistory: loadSearch()
+  searchHistory: loadSearch(),
+  playHistory: loadPlay(),
+  favoriteList: loadFavorite()
 }
 export default state

@@ -462,6 +462,7 @@ export default {
         this.playingLyric = "";
         this.currentLineNum = 0;
       }
+      clearTimeout(this.timer)
       // 发生变化时播放
       this.timer = setTimeout(() => {
         this.$refs.audio.play();
